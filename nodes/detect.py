@@ -57,6 +57,7 @@ class detectNode:
             "confidence":("FLOAT", {"default": 0.1,
                                                                 "min": 0.0,
                                                                 "max": 1,
+                                                                "step":0.01,
                                                                 "display": "number"}),
             "model":(get_files_with_extension(os.path.join(folder_paths.models_dir,'ultralytics'),'.pt'),),
             "type":(["YOLO-World","YOLOv8"],),
