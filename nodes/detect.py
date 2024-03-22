@@ -5,16 +5,19 @@ import numpy as np
 
 import torch
 
+# Convert PIL to Tensor
+def pil2tensor(image):
+    return torch.from_numpy(np.array(image).astype(np.float32) / 255.0).unsqueeze(0)
 
 # print('#######s',os.path.join(__file__,'../'))
 
 sys.path.append(os.path.join(__file__,'../../'))
                 
-from ultralytics import YOLO,settings
+from ultralytics import YOLO,settings,YOLOWorld
+# from ultralytics import YOLOWorld
 
 # Update a setting
 settings.update({'weights_dir':os.path.join(folder_paths.models_dir,'ultralytics')})
-
 
 
 def get_files_with_extension(directory, extension):
@@ -47,36 +50,43 @@ def createMask(image,x,y,w,h):
     return mask
 
 class detectNode:
-  
     @classmethod
     def INPUT_TYPES(s):
         return {"required": {
             "image": ("IMAGE",),
+            "confidence":("FLOAT", {"default": 0.1,
+                                                                "min": 0.0,
+                                                                "max": 1,
+                                                                "display": "number"}),
             "model":(get_files_with_extension(os.path.join(folder_paths.models_dir,'ultralytics'),'.pt'),),
+            "type":(["YOLO-World","YOLOv8"],),
                              },
-
                  "optional":{ 
                     "target_label": ("STRING",{"forceInput": True,"default": "","multiline": False,"dynamicPrompts": False}), 
+                    "debug":(["on","off"],),
                 }
 
                 }
     
-    RETURN_TYPES = ("MASK","STRING","_GRID",)
-    RETURN_NAMES = ("masks","labels","grids",)
+    RETURN_TYPES = ("MASK","STRING","_GRID","IMAGE",)
+    RETURN_NAMES = ("masks","labels","grids","image",)
 
     FUNCTION = "run"
 
-    CATEGORY = "♾️Mixlab/YOLOv8"
+    CATEGORY = "♾️Mixlab/Mask"
 
     INPUT_IS_LIST = False
-    OUTPUT_IS_LIST = (True,True,True,)
+    OUTPUT_IS_LIST = (True,True,True,True,)
   
-    def run(self,image,model,target_label=""):
+    def run(self,image,confidence,model,type="YOLO-World",target_label="",debug="on"):
         # print(model)
         target_labels=target_label.split('\n')
         target_labels=[t.strip() for t in target_labels if t.strip()!='']
 
-        model = YOLO(model+'.pt')  # load an official model. model(image, conf=confidence, device=device)
+        if type=="YOLO-World":
+            model = YOLOWorld(model+'.pt')
+        else:
+            model = YOLO(model+'.pt')  # load an official model. model(image, conf=confidence, device=device)
 
         image=tensor2pil(image)
         image=image.convert('RGB')
@@ -88,15 +98,23 @@ class detectNode:
         masks=[]
         names=[]
         grids=[]
+        images_debug=[]
         # Process results list
         for i in range(len(results)):
             result=results[i]
             img=images[i]
             boxes = result.boxes  # Boxes object for bbox outputs
             bb=boxes.xyxy.cpu().numpy()
+            confs=boxes.conf.cpu().numpy()
+
+            # Plot results image
+            if debug=='on':
+                im = result.plot(pil=True)
+                images_debug.append(pil2tensor(im))
        
             for j in range(len(bb)):
                 name=result.names[boxes[j].cls.item()]
+                
                 # 判断是否是目标label
                 is_target=True
                 if len(target_labels)>0:
@@ -107,16 +125,20 @@ class detectNode:
 
                 if is_target==True:
                     b=bb[j]
-                    x,y,xw,yh=b
-                    w=xw-x
-                    h=yh-y
-                    mask=createMask(img,x,y,w,h)
-                    mask=pil2tensor(mask)
-                    masks.append(mask)
+                    conf=confs[j]
+                    if debug=='on':
+                        print('#confidence',name,conf)
+                    if conf >= confidence:
+                        x,y,xw,yh=b
+                        w=xw-x
+                        h=yh-y
+                        mask=createMask(img,x,y,w,h)
+                        mask=pil2tensor(mask)
+                        masks.append(mask)
 
-                    names.append(name)
+                        names.append(name)
 
-                    grids.append((x,y,w,h))
+                        grids.append((x,y,w,h))
 
         if len(masks)==0:
             # 创建一个黑色图
@@ -130,4 +152,6 @@ class detectNode:
             # probs = result.probs  # Probs object for classification outputs
             # print(result)
 
-        return (masks,names,grids,)
+        return (masks,names,grids,images_debug,)
+    
+
