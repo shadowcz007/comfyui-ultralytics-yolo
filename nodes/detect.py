@@ -110,8 +110,10 @@ class detectNode:
 
             # Plot results image
             if debug=='on':
-                im = result.plot(pil=True)
-                images_debug.append(pil2tensor(im))
+                im_bgr = result.plot()  # BGR-order numpy array
+                im_rgb = Image.fromarray(im_bgr[..., ::-1])  # RGB-order PIL image
+                # im = result.plot(pil=True)
+                images_debug.append(pil2tensor(im_rgb))
        
             for j in range(len(bb)):
                 name=result.names[boxes[j].cls.item()]
@@ -146,7 +148,7 @@ class detectNode:
             mask = Image.new("L", image.size)
             mask=pil2tensor(mask)
             masks.append(mask)
-            grids.append((0,0,mask.width,mask.height))
+            grids.append((0,0,image.size[0],image.size[1]))
             names.append(['-'])
             # masks = result.masks  # Masks object for segmentation masks outputs
             # keypoints = result.keypoints  # Keypoints object for pose outputs
