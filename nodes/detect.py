@@ -20,15 +20,24 @@ from ultralytics import YOLO,settings,YOLOWorld
 settings.update({'weights_dir':os.path.join(folder_paths.models_dir,'ultralytics')})
 
 
+# def get_files_with_extension(directory, extension):
+#     file_list = []
+#     for root, dirs, files in os.walk(directory):
+#         for file in files:
+#             if file.endswith(extension):
+#                 file_name = os.path.splitext(file)[0]
+#                 file_list.append(file_name)
+#     return file_list
 def get_files_with_extension(directory, extension):
     file_list = []
     for root, dirs, files in os.walk(directory):
         for file in files:
             if file.endswith(extension):
-                file_name = os.path.splitext(file)[0]
+                file = os.path.splitext(file)[0]
+                file_path = os.path.join(root, file)
+                file_name = os.path.relpath(file_path, directory)
                 file_list.append(file_name)
     return file_list
-
 
 # Tensor to PIL
 def tensor2pil(image):
