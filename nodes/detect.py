@@ -163,7 +163,7 @@ class detectNode:
             # keypoints = result.keypoints  # Keypoints object for pose outputs
             # probs = result.probs  # Probs object for classification outputs
             # print(result)
-
+        del model
         return (masks,names,grids,images_debug,)
     
 
