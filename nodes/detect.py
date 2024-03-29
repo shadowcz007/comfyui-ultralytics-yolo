@@ -16,7 +16,17 @@ from ultralytics import YOLO,settings,YOLOWorld
 # Update a setting
 settings.update({'weights_dir':os.path.join(folder_paths.models_dir,'ultralytics')})
 
+def add_masks(mask1, mask2):
+    mask1 = mask1.cpu()
+    mask2 = mask2.cpu()
+    cv2_mask1 = np.array(mask1) * 255
+    cv2_mask2 = np.array(mask2) * 255
 
+    if cv2_mask1.shape == cv2_mask2.shape:
+        cv2_mask = cv2.add(cv2_mask1, cv2_mask2)
+        return torch.clamp(torch.from_numpy(cv2_mask) / 255.0, min=0, max=1)
+    else:
+        return mask1
 # def get_files_with_extension(directory, extension):
 #     file_list = []
 #     for root, dirs, files in os.walk(directory):
@@ -101,9 +111,9 @@ class detectNode:
         total_images = image_np.shape[0]
         print('total_images',total_images)
 
-        masks=[]
+        masks_total=[]
         names=[]
-        grids=[]
+        grids_total=[]
         images_debug=[]
 
         for idx in range(total_images):
@@ -122,9 +132,9 @@ class detectNode:
             # Run batched inference on a list of images
             results = model(images)  # return a list of Results objects
             
-            # masks=[]
+            masks=[]
             # names=[]
-            # grids=[]
+            grids=[]
             # images_debug=[]
             # Process results list
             for i in range(len(results)):
@@ -169,24 +179,30 @@ class detectNode:
 
                             grids.append((x,y,w,h))
 
-            # masks=[]
+            # mask合并 
+            m1=masks[0]
+            for m in masks:
+                m1 = add_masks(m1, m)
+            masks_total.append(m1)
             # names=[]
-            # grids=[]
+            grids_total.append(grids)
             # images_debug=[]
 
-        if len(masks)==0:
+        if len(masks_total)==0:
             # 创建一个黑色图
             mask = Image.new("L", image.size)
             mask=pil2tensor(mask)
-            masks.append(mask)
-            grids.append((0,0,image.size[0],image.size[1]))
+            masks_total.append(mask)
+            grids_total.append((0,0,image.size[0],image.size[1]))
             names.append(['-'])
             # masks = result.masks  # Masks object for segmentation masks outputs
             # keypoints = result.keypoints  # Keypoints object for pose outputs
             # probs = result.probs  # Probs object for classification outputs
             # print(result)
+            
+                   
         del model
         # todo masks batch, 
-        return (masks,names,grids,images_debug,)
+        return (masks_total,names,grids_total,images_debug,)
     
 
