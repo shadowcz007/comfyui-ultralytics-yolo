@@ -112,7 +112,7 @@ class detectNode:
         print('total_images',total_images)
 
         masks_total=[]
-        names=[]
+        names_total=[]
         grids_total=[]
         images_debug=[]
 
@@ -133,7 +133,7 @@ class detectNode:
             results = model(images)  # return a list of Results objects
             
             masks=[]
-            # names=[]
+            names=[]
             grids=[]
             # images_debug=[]
             # Process results list
@@ -184,7 +184,7 @@ class detectNode:
             for m in masks:
                 m1 = add_masks(m1, m)
             masks_total.append(m1)
-            # names=[]
+            names_total.append(names)
             grids_total.append(grids)
             # images_debug=[]
 
