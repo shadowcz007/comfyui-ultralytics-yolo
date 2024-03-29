@@ -3,11 +3,8 @@ import folder_paths
 from PIL import Image
 import numpy as np
 
-import torch
+import torch,cv2
 
-# Convert PIL to Tensor
-def pil2tensor(image):
-    return torch.from_numpy(np.array(image).astype(np.float32) / 255.0).unsqueeze(0)
 
 # print('#######s',os.path.join(__file__,'../'))
 
@@ -98,59 +95,84 @@ class detectNode:
         else:
             model = YOLO(model+'.pt')  # load an official model. model(image, conf=confidence, device=device)
 
-        image=tensor2pil(image)
-        image=image.convert('RGB')
-        images=[image]
 
-        # Run batched inference on a list of images
-        results = model(images)  # return a list of Results objects
-        
+        # batch数量
+        image_np = 255. * image.cpu().numpy()
+        total_images = image_np.shape[0]
+        print('total_images',total_images)
+
         masks=[]
         names=[]
         grids=[]
         images_debug=[]
-        # Process results list
-        for i in range(len(results)):
-            result=results[i]
-            img=images[i]
-            boxes = result.boxes  # Boxes object for bbox outputs
-            bb=boxes.xyxy.cpu().numpy()
-            confs=boxes.conf.cpu().numpy()
 
-            # Plot results image
-            if debug=='on':
-                im_bgr = result.plot()  # BGR-order numpy array
-                im_rgb = Image.fromarray(im_bgr[..., ::-1])  # RGB-order PIL image
-                # im = result.plot(pil=True)
-                images_debug.append(pil2tensor(im_rgb))
-       
-            for j in range(len(bb)):
-                name=result.names[boxes[j].cls.item()]
-                
-                # 判断是否是目标label
-                is_target=True
-                if len(target_labels)>0:
-                    is_target=False
-                    for t in target_labels:
-                        if t==name:
-                            is_target=True
+        for idx in range(total_images):
+            cur_image_np = image_np[idx,:, :, ::-1]
+            cur_image_np = cur_image_np.astype(np.uint8)
+            cur_image_np=cv2.cvtColor(cur_image_np, cv2.COLOR_BGR2RGB)
+            image=Image.fromarray(cur_image_np)
 
-                if is_target==True:
-                    b=bb[j]
-                    conf=confs[j]
-                    if debug=='on':
-                        print('#confidence',name,conf)
-                    if conf >= confidence:
-                        x,y,xw,yh=b
-                        w=xw-x
-                        h=yh-y
-                        mask=createMask(img,x,y,w,h)
-                        mask=pil2tensor(mask)
-                        masks.append(mask)
 
-                        names.append(name)
+            # image=tensor2pil(image)
+            # print('###shape',image.shape)
 
-                        grids.append((x,y,w,h))
+            image=image.convert('RGB')
+            images=[image]
+
+            # Run batched inference on a list of images
+            results = model(images)  # return a list of Results objects
+            
+            # masks=[]
+            # names=[]
+            # grids=[]
+            # images_debug=[]
+            # Process results list
+            for i in range(len(results)):
+                result=results[i]
+                img=images[i]
+                boxes = result.boxes  # Boxes object for bbox outputs
+                bb=boxes.xyxy.cpu().numpy()
+                confs=boxes.conf.cpu().numpy()
+
+                # Plot results image
+                if debug=='on':
+                    im_bgr = result.plot()  # BGR-order numpy array
+                    im_rgb = Image.fromarray(im_bgr[..., ::-1])  # RGB-order PIL image
+                    # im = result.plot(pil=True)
+                    images_debug.append(pil2tensor(im_rgb))
+        
+                for j in range(len(bb)):
+                    name=result.names[boxes[j].cls.item()]
+                    
+                    # 判断是否是目标label
+                    is_target=True
+                    if len(target_labels)>0:
+                        is_target=False
+                        for t in target_labels:
+                            if t==name:
+                                is_target=True
+
+                    if is_target==True:
+                        b=bb[j]
+                        conf=confs[j]
+                        if debug=='on':
+                            print('#confidence',name,conf)
+                        if conf >= confidence:
+                            x,y,xw,yh=b
+                            w=xw-x
+                            h=yh-y
+                            mask=createMask(img,x,y,w,h)
+                            mask=pil2tensor(mask)
+                            masks.append(mask)
+
+                            names.append(name)
+
+                            grids.append((x,y,w,h))
+
+            # masks=[]
+            # names=[]
+            # grids=[]
+            # images_debug=[]
 
         if len(masks)==0:
             # 创建一个黑色图
