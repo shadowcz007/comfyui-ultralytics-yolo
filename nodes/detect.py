@@ -193,8 +193,8 @@ class detectNode:
             # 创建一个黑色图
             mask = Image.new("L", image.size)
             mask=pil2tensor(mask)
-            masks_total.append(mask)
-            grids_total.append((0,0,image.size[0],image.size[1]))
+            masks_total.append([mask])
+            grids_total.append([(0,0,image.size[0],image.size[1])])
             names_total.append(['-'])
             # masks = result.masks  # Masks object for segmentation masks outputs
             # keypoints = result.keypoints  # Keypoints object for pose outputs
