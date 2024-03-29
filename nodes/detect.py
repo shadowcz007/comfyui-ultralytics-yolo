@@ -179,13 +179,14 @@ class detectNode:
 
                             grids.append((x,y,w,h))
 
-            # mask合并 
-            m1=masks[0]
-            for m in masks:
-                m1 = add_masks(m1, m)
-            masks_total.append(m1)
-            names_total.append(names)
-            grids_total.append(grids)
+            # mask合并
+            if len(masks)>0: 
+                m1=masks[0]
+                for m in masks:
+                    m1 = add_masks(m1, m)
+                masks_total.append(m1)
+                names_total.append(names)
+                grids_total.append(grids)
             # images_debug=[]
 
         if len(masks_total)==0:
