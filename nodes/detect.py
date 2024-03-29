@@ -194,7 +194,7 @@ class detectNode:
             mask=pil2tensor(mask)
             masks_total.append(mask)
             grids_total.append((0,0,image.size[0],image.size[1]))
-            names.append(['-'])
+            names_total.append(['-'])
             # masks = result.masks  # Masks object for segmentation masks outputs
             # keypoints = result.keypoints  # Keypoints object for pose outputs
             # probs = result.probs  # Probs object for classification outputs
@@ -203,6 +203,6 @@ class detectNode:
                    
         del model
         # todo masks batch, 
-        return (masks_total,names,grids_total,images_debug,)
+        return (masks_total,names_total,grids_total,images_debug,)
     
 
