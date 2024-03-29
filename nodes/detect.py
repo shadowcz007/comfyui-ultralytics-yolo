@@ -164,6 +164,7 @@ class detectNode:
             # probs = result.probs  # Probs object for classification outputs
             # print(result)
         del model
+        # todo masks batch, 
         return (masks,names,grids,images_debug,)
     
 
