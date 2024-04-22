@@ -121,8 +121,7 @@ class detectNode:
             cur_image_np = cur_image_np.astype(np.uint8)
             cur_image_np=cv2.cvtColor(cur_image_np, cv2.COLOR_BGR2RGB)
             image=Image.fromarray(cur_image_np)
-
-
+            
             # image=tensor2pil(image)
             # print('###shape',image.shape)
 
@@ -169,6 +168,10 @@ class detectNode:
                             print('#confidence',name,conf)
                         if conf >= confidence:
                             x,y,xw,yh=b
+                            x=int(x)
+                            y=int(y)
+                            xw=int(xw)
+                            yh=int(yh)
                             w=xw-x
                             h=yh-y
                             mask=createMask(img,x,y,w,h)
@@ -177,7 +180,7 @@ class detectNode:
 
                             names.append(name)
 
-                            grids.append((x,y,w,h))
+                            grids.append((x,y,w,h,image.size[0],image.size[1]))
 
             # mask合并
             if len(masks)>0: 
@@ -194,7 +197,7 @@ class detectNode:
             mask = Image.new("L", image.size)
             mask=pil2tensor(mask)
             masks_total.append([mask])
-            grids_total.append([(0,0,image.size[0],image.size[1])])
+            grids_total.append([(0,0,image.size[0],image.size[1],image.size[0],image.size[1])])
             names_total.append(['-'])
             # masks = result.masks  # Masks object for segmentation masks outputs
             # keypoints = result.keypoints  # Keypoints object for pose outputs
