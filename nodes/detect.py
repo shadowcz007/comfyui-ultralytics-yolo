@@ -180,7 +180,7 @@ class detectNode:
 
                             names.append(name)
 
-                            grids.append((x,y,w,h,image.size[0],image.size[1]))
+                            grids.append((x,y,w,h))
 
             # mask合并
             if len(masks)>0: 
