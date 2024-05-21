@@ -1,6 +1,6 @@
 [project]
 name = "comfyui-ultralytics-yolo"
-description = ""
+description = "Nodes:Detect By Label."
 version = "1.0.0"
 license = "LICENSE"
 dependencies = ["ultralytics"]
