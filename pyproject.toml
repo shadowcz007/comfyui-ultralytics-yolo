@@ -1,0 +1,15 @@
+[project]
+name = "comfyui-ultralytics-yolo"
+description = ""
+version = "1.0.0"
+license = "LICENSE"
+dependencies = ["ultralytics"]
+
+[project.urls]
+Repository = "https://github.com/shadowcz007/comfyui-ultralytics-yolo"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "comfyui-ultralytics-yolo"
+Icon = ""
