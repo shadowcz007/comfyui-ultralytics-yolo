@@ -175,8 +175,15 @@ class detectNode:
                             yh=int(yh)
                             w=xw-x
                             h=yh-y
-                            mask=createMask(img,x,y,w,h)
-                            mask=pil2tensor(mask)
+
+                            if result.masks:
+                                mask_data = result.masks.data
+                                mask=mask_data[j]
+                                print('#mask_data',mask)
+                                # res_mask.append(torch.sum(masks, dim=0))
+                            else:
+                                mask=createMask(img,x,y,w,h)
+                                mask=pil2tensor(mask)
                             masks.append(mask)
 
                             names.append(name)
