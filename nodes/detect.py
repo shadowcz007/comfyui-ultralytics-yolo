@@ -17,6 +17,7 @@ from ultralytics import YOLO,settings,YOLOWorld
 settings.update({'weights_dir':os.path.join(folder_paths.models_dir,'ultralytics')})
 
 def add_masks(mask1, mask2):
+    m=mask1
     mask1 = mask1.cpu()
     mask2 = mask2.cpu()
     cv2_mask1 = np.array(mask1) * 255
@@ -26,7 +27,7 @@ def add_masks(mask1, mask2):
         cv2_mask = cv2.add(cv2_mask1, cv2_mask2)
         return torch.clamp(torch.from_numpy(cv2_mask) / 255.0, min=0, max=1)
     else:
-        return mask1
+        return m
 # def get_files_with_extension(directory, extension):
 #     file_list = []
 #     for root, dirs, files in os.walk(directory):
@@ -195,8 +196,8 @@ class detectNode:
         if len(masks_total)==0:
             # 创建一个黑色图
             mask = Image.new("L", image.size)
-            mask=pil2tensor(mask)
-            masks_total.append([mask])
+            masks_total=pil2tensor(mask)
+            # masks_total.append([mask])
             grids_total.append([(0,0,image.size[0],image.size[1],image.size[0],image.size[1])])
             names_total.append(['-'])
             # masks = result.masks  # Masks object for segmentation masks outputs
