@@ -179,7 +179,7 @@ class detectNode:
                             if result.masks:
                                 mask_data = result.masks.data
                                 mask=mask_data[j]
-                                print('#mask_data',mask)
+                                # print('#mask_data',mask)
                                 # res_mask.append(torch.sum(masks, dim=0))
                             else:
                                 mask=createMask(img,x,y,w,h)
