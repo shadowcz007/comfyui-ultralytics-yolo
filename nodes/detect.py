@@ -3,7 +3,7 @@ import folder_paths
 from PIL import Image
 import numpy as np
 
-import torch,cv2
+import torch,cv2,re
 
 
 # print('#######s',os.path.join(__file__,'../'))
@@ -17,17 +17,19 @@ from ultralytics import YOLO,settings,YOLOWorld
 settings.update({'weights_dir':os.path.join(folder_paths.models_dir,'ultralytics')})
 
 def add_masks(mask1, mask2):
-    m=mask1
+    m = mask1
     mask1 = mask1.cpu()
     mask2 = mask2.cpu()
     cv2_mask1 = np.array(mask1) * 255
     cv2_mask2 = np.array(mask2) * 255
 
-    if cv2_mask1.shape == cv2_mask2.shape:
-        cv2_mask = cv2.add(cv2_mask1, cv2_mask2)
-        return torch.clamp(torch.from_numpy(cv2_mask) / 255.0, min=0, max=1)
-    else:
-        return m
+    if cv2_mask1.shape != cv2_mask2.shape:
+        # 调整 mask2 的大小以匹配 mask1
+        cv2_mask2 = cv2.resize(cv2_mask2, (cv2_mask1.shape[1], cv2_mask1.shape[0]))
+
+    # 直接相加并进行归一化
+    cv2_mask = np.clip(cv2_mask1 + cv2_mask2, 0, 255)
+    return torch.clamp(torch.from_numpy(cv2_mask) / 255.0, min=0, max=1)
 # def get_files_with_extension(directory, extension):
 #     file_list = []
 #     for root, dirs, files in os.walk(directory):
@@ -98,7 +100,10 @@ class detectNode:
   
     def run(self,image,confidence,model,type="YOLO-World",target_label="",debug="on"):
         # print(model)
-        target_labels=target_label.split('\n')
+
+        target_labels=re.split('[,， \n]', target_label)
+
+        # target_labels=target_label.split('\n')
         target_labels=[t.strip() for t in target_labels if t.strip()!='']
 
         if type=="YOLO-World":
@@ -156,6 +161,7 @@ class detectNode:
                     
                     # 判断是否是目标label
                     is_target=True
+                    print(name,target_labels)
                     if len(target_labels)>0:
                         is_target=False
                         for t in target_labels:
